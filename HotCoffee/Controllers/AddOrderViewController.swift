@@ -14,6 +14,8 @@ class AddOrderViewController: UIViewController, UITableViewDelegate, UITableView
     private var vm = AddCoffeeOrderViewModel()
 
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var nameTextField: UITextField!
+    @IBOutlet weak var emailTextField: UITextField!
     private var coffeeSizesSegmentedControl: UISegmentedControl!
     
     override func viewDidLoad() {
@@ -46,6 +48,31 @@ class AddOrderViewController: UIViewController, UITableViewDelegate, UITableView
         content.text = vm.types[indexPath.row]
         cell.contentConfiguration = content
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+    }
+    
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        tableView.cellForRow(at: indexPath)?.accessoryType = .none
+    }
+    
+    @IBAction func save() {
+        let name = nameTextField.text
+        let email = emailTextField.text
+        
+        let selectedSize = coffeeSizesSegmentedControl.titleForSegment(at: coffeeSizesSegmentedControl.selectedSegmentIndex)
+        guard let indexPath = tableView.indexPathForSelectedRow else {
+            fatalError("Error in selecting coffee")
+        }
+        
+        vm.name = name
+        vm.email = email
+        vm.selectedSize = selectedSize
+        vm.selectedType = vm.types[indexPath.row]
+        
+        
     }
     
 }
