@@ -29,6 +29,21 @@ struct Order: Codable {
     let type: CoffeeType
     let size: CoffeeSize
     
+    var formattedType: String {
+        return type.rawValue.capitalized
+    }
+    
+    var formattedSize: String {
+        return size.rawValue
+    }
+    
+    static var all: Resource<[Order]> = {
+        guard let url = URL(string: "https://warp-wiry-rugby.glitch.me/orders") else {
+            fatalError("URL is incorrect")
+        }
+        return Resource<[Order]>(url: url)
+    }()
+    
     init?(_ vm: AddCoffeeOrderViewModel) {
         guard let name = vm.name,
               let email = vm.email,
@@ -41,5 +56,23 @@ struct Order: Codable {
         self.email = email
         self.type = selectedType
         self.size = selectedSize
+    }
+    
+    static func create(vm: AddCoffeeOrderViewModel) -> Resource<Order?> {
+        
+        let order = Order(vm)
+        guard let url = URL(string: "https://warp-wiry-rugby.glitch.me/orders") else {
+            fatalError("URL is incorrect")
+        }
+        
+        guard let data = try? JSONEncoder().encode(order) else {
+            fatalError("Error encoding order!")
+        }
+        
+        var resource = Resource<Order?>(url: url)
+        resource.httpMethod = HttpMethod.post
+        resource.body = data
+        
+        return resource
     }
 }

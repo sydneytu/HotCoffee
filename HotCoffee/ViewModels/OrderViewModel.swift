@@ -12,35 +12,47 @@ import Foundation
 // accomodates the data that will be displayed on the view (in MVC this would be in the Model)
 
 // provides the data for entire view for the orderTableViewController
-class OrderListViewModel {
-    var ordersViewModel: [OrderViewModel]
+//class OrderListViewModel {
+//    var ordersViewModel: [OrderViewModel]
+//    
+//    init() {
+//        self.ordersViewModel = [OrderViewModel]()
+//    }
+//    
+//    func orderViewModel(at index: Int) -> OrderViewModel {
+//        return self.ordersViewModel[index]
+//    }
+//}
+
+class OrdersViewModel {
+    var ordersList: [Order]
     
     init() {
-        self.ordersViewModel = [OrderViewModel]()
+        self.ordersList = [Order]()
     }
     
-    func orderViewModel(at index: Int) -> OrderViewModel {
-        return self.ordersViewModel[index]
+    func ordersList(at index: Int) -> Order {
+        return self.ordersList[index]
     }
 }
 
-// represents one coffee order
-struct OrderViewModel {
-    let order: Order
-    
-    var name: String {
-        return self.order.name
-    }
-    
-    var email: String {
-        return self.order.email
-    }
-    
-    var type: String {
-        return self.order.type.rawValue.capitalized
-    }
-    
-    var size: String {
-        return self.order.size.rawValue
-    }
-}
+//// represents one coffee order
+//struct OrderViewModel {
+//    let order: Order
+//    
+//    var name: String {
+//        return self.order.name
+//    }
+//    
+//    var email: String {
+//        return self.order.email
+//    }
+//    
+//    var type: String {
+//        return self.order.type.rawValue.capitalized
+//    }
+//    
+//    var size: String {
+//        return self.order.size.rawValue
+//    }
+//}
