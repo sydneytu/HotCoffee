@@ -10,7 +10,6 @@ import Foundation
 import UIKit
 
 class OrdersTableViewController: UITableViewController {
-    
     // represents all the data that is needed by the tableVC
     var ordersViewModel = OrdersViewModel()
     
@@ -20,17 +19,33 @@ class OrdersTableViewController: UITableViewController {
     }
     
     private func populateOrders() {
+        guard let coffeeUrl = URL(string: "https://warp-wiry-rugby.glitch.me/orders") else {
+            fatalError("URL is incorrect")
+        }
         
-        WebService().load(resource: Order.all) { [weak self] result in
-            switch result {
-            case .success(let orders):
-                // for each order we are creating an OrderViewModel
-                self?.ordersViewModel.ordersList = orders.map(Order.init)
-                self?.tableView.reloadData()
-            case .failure(let error):
-                print(error)
+        Task {
+            do {
+                let data = try await URLSession.shared.loadData(from: coffeeUrl)
+                let orders = try JSONDecoder().decode([Order].self, from: data)
+                self.ordersViewModel.ordersList = orders
+                self.tableView.reloadData()
+            }
+            catch {
+                print("Request failed with error: \(error.localizedDescription)")
             }
         }
+        
+//        let resource = Resource<[Order]>(url: coffeeUrl)
+//
+//        HTTPDataDownloader().load(resource: resource) { [weak self] result in
+//            switch result {
+//            case .success(let orders):
+//                self?.ordersViewModel.ordersList = orders
+//                self?.tableView.reloadData()
+//            case .failure(let error):
+//                print(error)
+//            }
+//        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -66,9 +81,8 @@ class OrdersTableViewController: UITableViewController {
 extension OrdersTableViewController: AddCoffeeOrderDelegate {
     func addCoffeeOrderViewControllerDidSave(order: Order, controller: UIViewController) {
         controller.dismiss(animated: true)
-        let orderVM = OrderViewModel(order: order)
-        orderListViewModel.ordersViewModel.append(orderVM)
-        tableView.insertRows(at: [IndexPath.init(row: orderListViewModel.ordersViewModel.count - 1, section: 0)], with: .automatic)
+        ordersViewModel.ordersList.append(order)
+        tableView.insertRows(at: [IndexPath.init(row: ordersViewModel.ordersList.count - 1, section: 0)], with: .automatic)
     }
     
     func addCoffeeOrderViewControllerDidClose(controller: UIViewController) {

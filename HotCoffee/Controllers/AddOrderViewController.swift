@@ -86,18 +86,31 @@ class AddOrderViewController: UIViewController, UITableViewDelegate, UITableView
         vm.selectedSize = selectedSize
         vm.selectedType = vm.types[indexPath.row]
         
-        WebService().load(resource: Order.create(vm: vm)) { result in
-            switch result {
-            case .success(let order):
-                if let order = order, let delegate = self.delegate {
+        Task {
+            do {
+                let order  = try await URLSession.shared.saveData(resource: Order.create(vm: vm))
+                if let delegate = self.delegate {
                     DispatchQueue.main.async {
                         delegate.addCoffeeOrderViewControllerDidSave(order: order, controller: self)
                     }
                 }
-            case .failure(let error):
-                print(error)
+            }
+            catch {
+                print(error.localizedDescription)
             }
         }
+//        HTTPDataDownloader().load(resource: Order.create(vm: vm)) { result in
+//            switch result {
+//            case .success(let order):
+//                if let order = order, let delegate = self.delegate {
+//                    DispatchQueue.main.async {
+//                        delegate.addCoffeeOrderViewControllerDidSave(order: order, controller: self)
+//                    }
+//                }
+//            case .failure(let error):
+//                print(error)
+//            }
+//        }
     }
     
 }

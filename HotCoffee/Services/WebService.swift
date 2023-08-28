@@ -8,6 +8,8 @@
 
 import Foundation
 
+let validStatus = 200...299
+
 // Define potential error cases
 enum NetworkError: Error {
     case decodingError
@@ -21,7 +23,8 @@ enum HttpMethod: String {
 }
 
 // of generic type and Codable
-// this is the request
+// responsible for making the request
+// for a particular resource which in this case is the orders for the coffee
 struct Resource<T: Codable> {
     let url: URL
     var httpMethod: HttpMethod = .get
@@ -32,30 +35,64 @@ struct Resource<T: Codable> {
     }
 }
 
-class WebService {
-    func load<T>(resource: Resource<T>, completion: @escaping(Result<T, NetworkError>) -> Void) {
+protocol WebService {
+    func loadData(from url: URL) async throws -> Data
+    func saveData(resource: Resource<Order?>) async throws -> Order
+}
+
+extension URLSession: WebService {
+    func saveData(resource: Resource<Order?>) async throws -> Order {
         var request = URLRequest(url: resource.url)
         request.httpMethod = resource.httpMethod.rawValue
         request.httpBody = resource.body
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data, error == nil else {
-                completion(.failure(.domainError))
-                return
-            }
-            let result = try? JSONDecoder().decode(T.self, from: data)
-            if let result = result {
-                // have to do this bc result is eventually passed to the UI
-                DispatchQueue.main.async {
-                    completion(.success(result))
-                }
-            }
-            else {
-                completion(.failure(.decodingError))
-            }
 
-        }.resume()
+        guard let (data, response) = try await URLSession.shared.data(for: request)
+                as? (Data, HTTPURLResponse),
+              validStatus.contains(response.statusCode) else {
+            throw NetworkError.domainError
+        }
+        
+        let order = try JSONDecoder().decode(Order.self, from: data)
+        return order
     }
+    
+    func loadData(from url: URL) async throws -> Data {
+        guard let (data, response) = try await URLSession.shared.data(from: url) as? (Data, HTTPURLResponse),
+              validStatus.contains(response.statusCode) else {
+            throw NetworkError.domainError
+        }
+        
+        return data
+    }
+    
 }
+
+//class WebService {
+//    func load<T>(resource: Resource<T>, completion: @escaping(Result<T, NetworkError>) -> Void) {
+//        var request = URLRequest(url: resource.url)
+//        request.httpMethod = resource.httpMethod.rawValue
+//        request.httpBody = resource.body
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            guard let data = data, error == nil else {
+//                completion(.failure(.domainError))
+//                return
+//            }
+//            let result = try? JSONDecoder().decode(T.self, from: data)
+//            if let result = result {
+//                // have to do this bc result is eventually passed to the UI
+//                DispatchQueue.main.async {
+//                    completion(.success(result))
+//                }
+//            }
+//            else {
+//                completion(.failure(.decodingError))
+//            }
+//
+//        }.resume()
+//    }
+//}
